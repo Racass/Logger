@@ -3,14 +3,14 @@ A simple class in C# to write a log
 
 This class is capable of 2 init functions.
 
-#Way of write
+# Using
 
 This logger will prints "LOG OF DAY: DD/MM/YYYY" in the first line when it creates the log.
 After that will jump one line and start logging.
 The line will follow the pattern: "HH:Min:Sec: "MESSAGE"
 It's capable of write in different directorys than the pattern "ACTUAL_EXE_DIRECTORY\configs\Log" and in differents files from the patter "DD\MM\YYYY.TXT". 
 
-#Instructions
+# Instructions
 
 Call Logger.init() to write in the log.
 INIT() has 3 overloads.
