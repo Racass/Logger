@@ -12,38 +12,23 @@ It's capable of write in different directorys than the pattern "ACTUAL_EXE_DIREC
 
 # Instructions
 
-Call Logger.init() to write in the log.
-INIT() has 3 overloads.
+In the caller, you CAN send a name of file and a new directory to the program.
+Logger log = new Logger(DIRECTORY, NAME_OF_FILE);
 
-  Overload 1: 
-  
-        Enter the DIRECTORY OF FILE
-                The DIRECTORY is by pattern the actual directory of the file + "\configs\Log", and you can add a custom directory 
-                by using this.
-        Enter the NAME of the file
-                the NAME is by pattern the day in the format "DD.MM.YYYY.txt", but u can rename it using this.
+If you don't want to, just call the Logger withouth parameters.
+
+Call Logger.init() to write in the log.
+INIT() has 1 load.
+
+load 1: 
         
         Enter the MSG
-                Enter the MSG that you want
-                
- Overload 2:
- 
-        Enter the NAME of the file
-                the NAME is by pattern the day in the format "DD.MM.YYYY.txt", but u can rename it using this.
-        
-        Enter the MSG
-                Enter the MSG that you want
-                
-                
-  Overload 1:
-  
-        Enter the MSG
-                Enter the MSG that you want
+                Enter the MSG that you want write.
                 
 
 
 Call Logger.InitChangeLine() to write in the log, jumping one line BEFORE the msg.
-InitChangeLine() has 4 overloads. 3 of them equals to INIT.
+InitChangeLine() has 2 overloads. 1 is equal to Init.
 
   Overload 0:
   
