@@ -1,93 +1,64 @@
-﻿
-
+﻿// remove and sort usings, cleanup extra whitespace
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.IO;
-
 
 namespace Sonavox
 {
-    class Logger
+    // made class publicly accessible - https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/keywords/accessibility-levels
+    public class Logger
     {
+        private const string DEFAULT_DIR = @"\configs\Log\";
+        // made privately accessible
+        // reformatted variable declarations
+        // removed unnesscary namespace qualifier (System) and ToString() sicne BaseDirectory is a String
+        private string dir;
+        private string nameOfFile;
+        private string message;
+        private string pastMessage;
+      
         string myDir = Path.GetDirectoryName(System.AppDomain.CurrentDomain.BaseDirectory.ToString());
         string nameOfFile = String.Empty, message = String.Empty;
-
+      
         //#######################################################################################
         //#################################### Callers ##########################################
         //#######################################################################################
+        public Logger(string msg)
+            : this(DEFAULT_DIR, String.Empty, msg) { }
 
-        public void Init(string directory, string nameOfTxt, string Msg)
-        {
-            myDir = directory;
-            nameOfFile = nameOfTxt;
-            message = Msg;
-            SetNameOfFile();
-            WriteLineController();
-            Clear();
-        }
-        public void Init(string nameOfTxt, string Msg)
-        {
-            myDir += @"\configs\Log\";
-            message = Msg;
-            nameOfFile = nameOfTxt;
-            SetNameOfFile();
-            WriteLineController();
-            Clear();
-        }
-        public void Init(string Msg)
-        {
-            SetNameOfFile();
-            myDir += @"\configs\Log\";
-            message = Msg;
-            WriteLineController();
-            Clear();
-        }
+        public Logger(string name, string msg)
+            : this(DEFAULT_DIR, name, msg) { }
 
-        public void InitChangeLine(string directory, string nameOfTxt, string Msg)
+        public Logger(string directory, string name, string msg, bool startOnNewLine = true)
         {
-            myDir = directory;
-            nameOfFile = nameOfTxt;
-            SetNameOfFile();
-            message = Msg;
-            ChangeLineController();
-            Clear();
-        }
-        public void InitChangeLine(string nameOfTxt, string Msg)
-        {
-            myDir += @"\configs\Log\";
-            message = Msg;
-            nameOfFile = nameOfTxt;
-            SetNameOfFile();
-            ChangeLineController();
-            Clear();
-        }
-        public void InitChangeLine(string Msg)
-        {
-            SetNameOfFile();
-            myDir += @"\configs\Log\";
-            message = Msg;
-            ChangeLineController();
-            Clear();
-        }
-        public void InitChangeLine()
-        {
-            SetNameOfFile();
-            myDir += @"\configs\Log\";
+            dir = directory;
+            // empty or null name is handled by string interpolation https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/keywords/interpolated-strings
+            nameOfFile = $"{name}{DateTime.Now.ToString("M.d.yyyy")}";
+            message = msg;
+            pastMessage = string.Empty;
+
             try
             {
-                VerifyAll();
-                JumpLine();
-            }
+                if (CheckAndCreateDirectory() && FileExists())
+                {
+                    ReadTxt();
+                }
+                else
+                {
+                    CreateTxt();
+                    ReadTxt();
+                }
 
-            catch (Exception)
-            {
-                ErrorWritter();
+                if (startOnNewLine)
+                {
+                    WriteTxtOnNewLine();
+                }
+                else
+                {
+                    WriteTxt();
+                }
                 Clear();
-                return;
             }
+            finally
             Clear();
         }
 
@@ -105,121 +76,118 @@ namespace Sonavox
             }
             catch (Exception)
             {
-                ErrorWritter();
+                // https://stackoverflow.com/questions/9291437/use-a-try-finally-block-without-a-catch-block
+                ErrorWriter();
                 Clear();
-                return;
             }
         }
-        void ChangeLineController()
+
+        public void Write(string text)
         {
-            try
-            {
-                VerifyAll();
-                WriteTxt_NewLine();
-            }
-
-            catch (Exception)
-            {
-                ErrorWritter();
-                Clear();
-                return;
-            }
-
+            message = text;
+            WriteTxtOnNewLine();
         }
+
+        public string Read()
+        {
+            ReadTxt();
+            return pastMessage;
+        }
+
         void VerifyAll()
         {
             if (!VerifyDirectory())
                 CreateDirectory();
-
-            if (!VerifyTxt())
-                CreateTxt(); 
         }
-        bool VerifyDirectory()
+      
+        private bool CheckAndCreateDirectory()
         {
-            if (Directory.Exists(myDir))
-                return true;
-
-            else
+            if (Directory.Exists(dir))
             {
-                if (CreateDirectory())
-                    return true;
-                else
-                    return false;
+                return true;
             }
+
+            return CreateDirectory();
         }
-        bool CreateDirectory()
+
+        private bool CreateDirectory()
         {
             try
             {
-                Directory.CreateDirectory(myDir);
-                return true;
+                Directory.CreateDirectory(dir);
             }
             catch (Exception)
             {
                 return false;
             }
+
+            return true;
         }
-        bool VerifyTxt()
+
+        private bool FileExists()
         {
-            string fileName = myDir + nameOfFile;
+            // use var keyword https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/keywords/var
+            // use of Path.Combine https://msdn.microsoft.com/en-us/library/fyy7a5kt(v=vs.110).aspx
+            var fileName = Path.Combine(dir, nameOfFile);
             if (File.Exists(fileName))
+            {
                 return true;
-            else
-                return false;
+            }
+
+            return false;
         }
-        void CreateTxt()
+
+        private void CreateTxt()
         {
-            using (StreamWriter writer = new StreamWriter(myDir + nameOfFile, append: true))
+            // using with Dispose classes https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/keywords/using-statement
+            // using calls Dispose which when properly implemented calls Close
+            using (var Log = new StreamWriter(dir + nameOfFile))
             {
-                writer.WriteLine("LOG DO DIA: " + DateTime.Now.ToShortDateString());
+                Log.WriteLine($"LOG DO DIA: {DateTime.Now.ToShortDateString()}");
+            }
+        }
+
+        private void ReadTxt()
+        {
+            using (var writer = new StreamReader(Path.Combine(dir, nameOfFile)))
+            {
+                pastMessage = writer.ReadToEnd();
+            }
+        }
+
+        private void WriteTxt()
+        {
+            using (var writer = new StreamWriter(Path.Combine(dir, nameOfFile)))
+            {
+                writer.WriteLine(pastMessage);
+                writer.Write($"{DateTime.Now.ToLongTimeString()} : {message}");
+            }
+        }
+
+        private void WriteTxtOnNewLine()
+        {
+            using (var writer = new StreamWriter(Path.Combine(dir, nameOfFile)))
+            {
+                writer.WriteLine(pastMessage);
                 writer.WriteLine();
-                writer.Close();
+                writer.Write($"{DateTime.Now.ToLongTimeString()} : {message}");
+
             }
         }
-        void WriteTxt()
+
+        private void Clear()
         {
-            using (StreamWriter writer = new StreamWriter(myDir + nameOfFile, append: true))
-            {
-                writer.WriteLine(DateTime.Now.ToString("d.M.yyyy") + ": " + message);
-                writer.Close();
-            }
+            dir         = Path.GetDirectoryName(AppDomain.CurrentDomain.BaseDirectory);
+            nameOfFile  = String.Empty;
+            message     = String.Empty;
+            pastMessage = String.Empty;
         }
-        void SetNameOfFile()
+
+        private void ErrorWriter()
         {
-            if (nameOfFile == "")
-                nameOfFile = DateTime.Now.ToString("d.MM.yyyy") + ".txt";
-            else
-                nameOfFile += "_" + DateTime.Now.ToString("d.M.yyyy") + ".txt";
-        } 
-        void WriteTxt_NewLine()
-        {
-            using (StreamWriter writer = new StreamWriter(myDir + nameOfFile, append: true))
+            using (var writer = new StreamWriter(Path.GetDirectoryName(System.AppDomain.CurrentDomain.BaseDirectory.ToString()) + "UnknownError.txt"))
             {
-                writer.WriteLine();
-                writer.WriteLine(DateTime.Now.ToLongTimeString() + ": " + message);
-                writer.Close();
-            }
-        }
-        void JumpLine()
-        {
-            using (StreamWriter writer = new StreamWriter(myDir + nameOfFile, append: true))
-            {
-                writer.WriteLine();
-                writer.Close();
-            }
-        }
-        void Clear()
-        {
-            myDir = Path.GetDirectoryName(System.AppDomain.CurrentDomain.BaseDirectory.ToString());
-            nameOfFile = String.Empty;
-            message = String.Empty;
-        }
-        void ErrorWritter()
-        {
-            using (StreamWriter writer = new StreamWriter(Path.GetDirectoryName(System.AppDomain.CurrentDomain.BaseDirectory.ToString()) + "UnknownError.txt"))
-            {
-                writer.Write(DateTime.Now.ToLongTimeString() + ": " + "Verify your directory.");
-                writer.Close();
+                writer.Write($"{DateTime.Now.ToLongTimeString()} : Verify your directory.");
             }
         }
     }
