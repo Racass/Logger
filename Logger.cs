@@ -1,93 +1,91 @@
-﻿
-
-using System;
-using System.Collections.Generic;
-using System.Linq;
+﻿using System;
 using System.Text;
-using System.Threading.Tasks;
 using System.IO;
 
-
-namespace Sonavox
+namespace Class
 {
     class Logger
     {
         string myDir = Path.GetDirectoryName(System.AppDomain.CurrentDomain.BaseDirectory.ToString());
         string nameOfFile = String.Empty, message = String.Empty;
+        StreamWriter writer;
+
+        //#######################################################################################
+        //#################################### Constructors #####################################
+        //#######################################################################################
+
+        public Logger(string directory, string nameOfTxt)
+        {
+            myDir = directory;
+            nameOfFile = nameOfTxt;
+            SetNameOfFile();
+            Init();
+        }
+        public Logger(string nameOfTxt)
+        {
+            myDir += @"\configs\Log\";
+            nameOfFile = nameOfTxt;
+            SetNameOfFile();
+            Init();
+        }
+        public Logger()
+        {
+            myDir += @"\configs\Log\";
+            SetNameOfFile();
+            Init();
+        }
+
+        void Init()
+        {
+            try
+            {
+                writer = new StreamWriter(myDir + nameOfFile, append: true);
+                VerifyAll();
+            }
+            catch(Exception ex)
+            {
+                ErrorWritter(ex);
+            }
+        }
+
+
+        //#######################################################################################
+        //#################################### Destructors ######################################
+        //#######################################################################################
+
+        public void KillMe()
+        {
+            Clear();
+            writer.Close();
+            writer.Dispose();
+        }
+        void Clear()
+        {
+            myDir = Path.GetDirectoryName(System.AppDomain.CurrentDomain.BaseDirectory.ToString());
+            nameOfFile = String.Empty;
+            message = String.Empty;
+        }
 
         //#######################################################################################
         //#################################### Callers ##########################################
         //#######################################################################################
 
-        public void Init(string directory, string nameOfTxt, string Msg)
+        public void Write(string Msg)
         {
-            myDir = directory;
-            nameOfFile = nameOfTxt;
             message = Msg;
-            SetNameOfFile();
-            WriteLineController();
+            WriteTxt();
             Clear();
         }
-        public void Init(string nameOfTxt, string Msg)
+        public void ChangeLine(string Msg)
         {
-            myDir += @"\configs\Log\";
             message = Msg;
-            nameOfFile = nameOfTxt;
-            SetNameOfFile();
-            WriteLineController();
+            JumpLine();
+            WriteTxt();
             Clear();
         }
-        public void Init(string Msg)
+        public void ChangeLine()
         {
-            SetNameOfFile();
-            myDir += @"\configs\Log\";
-            message = Msg;
-            WriteLineController();
-            Clear();
-        }
-
-        public void InitChangeLine(string directory, string nameOfTxt, string Msg)
-        {
-            myDir = directory;
-            nameOfFile = nameOfTxt;
-            SetNameOfFile();
-            message = Msg;
-            ChangeLineController();
-            Clear();
-        }
-        public void InitChangeLine(string nameOfTxt, string Msg)
-        {
-            myDir += @"\configs\Log\";
-            message = Msg;
-            nameOfFile = nameOfTxt;
-            SetNameOfFile();
-            ChangeLineController();
-            Clear();
-        }
-        public void InitChangeLine(string Msg)
-        {
-            SetNameOfFile();
-            myDir += @"\configs\Log\";
-            message = Msg;
-            ChangeLineController();
-            Clear();
-        }
-        public void InitChangeLine()
-        {
-            SetNameOfFile();
-            myDir += @"\configs\Log\";
-            try
-            {
-                VerifyAll();
-                JumpLine();
-            }
-
-            catch (Exception)
-            {
-                ErrorWritter();
-                Clear();
-                return;
-            }
+            JumpLine();
             Clear();
         }
 
@@ -96,93 +94,31 @@ namespace Sonavox
         //###################################### Work ##########################################
         //######################################################################################
 
-        void WriteLineController()
-        {
-            try
-            {
-                VerifyAll();
-                WriteTxt();
-            }
-            catch (Exception)
-            {
-                ErrorWritter();
-                Clear();
-                return;
-            }
-        }
-        void ChangeLineController()
-        {
-            try
-            {
-                VerifyAll();
-                WriteTxt_NewLine();
-            }
-
-            catch (Exception)
-            {
-                ErrorWritter();
-                Clear();
-                return;
-            }
-
-        }
         void VerifyAll()
         {
-            if (!VerifyDirectory())
+            string fileName = myDir + nameOfFile;
+
+            if (Directory.Exists(myDir) == false)
                 CreateDirectory();
 
-            if (!VerifyTxt())
-                CreateTxt(); 
+            if (File.Exists(fileName) == false)
+                FirstLine();
         }
-        bool VerifyDirectory()
-        {
-            if (Directory.Exists(myDir))
-                return true;
-
-            else
-            {
-                if (CreateDirectory())
-                    return true;
-                else
-                    return false;
-            }
-        }
-        bool CreateDirectory()
+        void CreateDirectory()
         {
             try
             {
                 Directory.CreateDirectory(myDir);
-                return true;
             }
-            catch (Exception)
+            catch (Exception ex)
             {
-                return false;
+                ErrorWritter(ex);
             }
         }
-        bool VerifyTxt()
+        void FirstLine()
         {
-            string fileName = myDir + nameOfFile;
-            if (File.Exists(fileName))
-                return true;
-            else
-                return false;
-        }
-        void CreateTxt()
-        {
-            using (StreamWriter writer = new StreamWriter(myDir + nameOfFile, append: true))
-            {
-                writer.WriteLine("LOG DO DIA: " + DateTime.Now.ToShortDateString());
-                writer.WriteLine();
-                writer.Close();
-            }
-        }
-        void WriteTxt()
-        {
-            using (StreamWriter writer = new StreamWriter(myDir + nameOfFile, append: true))
-            {
-                writer.WriteLine(DateTime.Now.ToString("d.M.yyyy") + ": " + message);
-                writer.Close();
-            }
+            writer.WriteLine("LOG DO DIA: " + DateTime.Now.ToShortDateString());
+            writer.WriteLine();
         }
         void SetNameOfFile()
         {
@@ -191,34 +127,19 @@ namespace Sonavox
             else
                 nameOfFile += "_" + DateTime.Now.ToString("d.M.yyyy") + ".txt";
         } 
-        void WriteTxt_NewLine()
+        void WriteTxt()
         {
-            using (StreamWriter writer = new StreamWriter(myDir + nameOfFile, append: true))
-            {
-                writer.WriteLine();
-                writer.WriteLine(DateTime.Now.ToLongTimeString() + ": " + message);
-                writer.Close();
-            }
+             writer.WriteLine(DateTime.Now.ToLongTimeString() + ": " + message);
         }
         void JumpLine()
         {
-            using (StreamWriter writer = new StreamWriter(myDir + nameOfFile, append: true))
-            {
-                writer.WriteLine();
-                writer.Close();
-            }
+             writer.WriteLine();
         }
-        void Clear()
-        {
-            myDir = Path.GetDirectoryName(System.AppDomain.CurrentDomain.BaseDirectory.ToString());
-            nameOfFile = String.Empty;
-            message = String.Empty;
-        }
-        void ErrorWritter()
+        void ErrorWritter(Exception exe)
         {
             using (StreamWriter writer = new StreamWriter(Path.GetDirectoryName(System.AppDomain.CurrentDomain.BaseDirectory.ToString()) + "UnknownError.txt"))
             {
-                writer.Write(DateTime.Now.ToLongTimeString() + ": " + "Verify your directory.");
+                writer.Write(DateTime.Now.ToLongTimeString() + ": Exception Source: " + exe.Source + " Message:" + exe.Message);
                 writer.Close();
             }
         }
