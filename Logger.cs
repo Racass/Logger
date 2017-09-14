@@ -15,11 +15,13 @@ namespace Sonavox
         private string nameOfFile;
         private string message;
         private string pastMessage;
-
+      
+        string myDir = Path.GetDirectoryName(System.AppDomain.CurrentDomain.BaseDirectory.ToString());
+        string nameOfFile = String.Empty, message = String.Empty;
+      
         //#######################################################################################
         //#################################### Callers ##########################################
         //#######################################################################################
-
         public Logger(string msg)
             : this(DEFAULT_DIR, String.Empty, msg) { }
 
@@ -54,10 +56,25 @@ namespace Sonavox
                 {
                     WriteTxt();
                 }
-
                 Clear();
             }
             finally
+            Clear();
+        }
+
+
+        //######################################################################################
+        //###################################### Work ##########################################
+        //######################################################################################
+
+        void WriteLineController()
+        {
+            try
+            {
+                VerifyAll();
+                WriteTxt();
+            }
+            catch (Exception)
             {
                 // https://stackoverflow.com/questions/9291437/use-a-try-finally-block-without-a-catch-block
                 ErrorWriter();
@@ -77,10 +94,12 @@ namespace Sonavox
             return pastMessage;
         }
 
-        //######################################################################################
-        //###################################### Work ##########################################
-        //######################################################################################
-
+        void VerifyAll()
+        {
+            if (!VerifyDirectory())
+                CreateDirectory();
+        }
+      
         private bool CheckAndCreateDirectory()
         {
             if (Directory.Exists(dir))
@@ -152,6 +171,7 @@ namespace Sonavox
                 writer.WriteLine(pastMessage);
                 writer.WriteLine();
                 writer.Write($"{DateTime.Now.ToLongTimeString()} : {message}");
+
             }
         }
 
