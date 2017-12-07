@@ -1,0 +1,5 @@
+-Create it as a DLL for easy use
+-Maybe use it as a thread/another Process  with a pre-class reference (?)
+  -Turn it to just be accessible from the pre-class
+  
+-Turn it more easy to use
