@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Text;
 using System.IO;
 
@@ -6,6 +6,13 @@ namespace Class
 {
     class Logger
     {
+		//#######################################################################################
+		//#######################################################################################
+		//									A simple to use Logger
+		//									Script by Rafael Cassiolato 
+		//#######################################################################################
+		//#######################################################################################
+		
         string myDir = Path.GetDirectoryName(System.AppDomain.CurrentDomain.BaseDirectory.ToString());
         string nameOfFile = String.Empty, message = String.Empty;
         StreamWriter writer;
@@ -13,7 +20,6 @@ namespace Class
         //#######################################################################################
         //#################################### Constructors #####################################
         //#######################################################################################
-
         public Logger(string directory, string nameOfTxt)
         {
             myDir = directory;
@@ -70,23 +76,16 @@ namespace Class
         //#################################### Callers ##########################################
         //#######################################################################################
 
-        public void Write(string Msg)
+        public void Write(string Msg, bool [changeLine = false])
         {
             message = Msg;
+			if(changeLine)
+				JumpLine();
             WriteTxt();
-            Clear();
-        }
-        public void ChangeLine(string Msg)
-        {
-            message = Msg;
-            JumpLine();
-            WriteTxt();
-            Clear();
         }
         public void ChangeLine()
         {
             JumpLine();
-            Clear();
         }
 
 
@@ -117,15 +116,15 @@ namespace Class
         }
         void FirstLine()
         {
-            writer.WriteLine("LOG DO DIA: " + DateTime.Now.ToShortDateString());
+            writer.WriteLine("DAY LOG: " + DateTime.Now.ToShortDateString());
             writer.WriteLine();
         }
         void SetNameOfFile()
         {
             if (nameOfFile == "")
-                nameOfFile = DateTime.Now.ToString("d.MM.yyyy") + ".txt";
+                nameOfFile = DateTime.Now.ToString("yyyy.MM.d") + ".txt";
             else
-                nameOfFile += "_" + DateTime.Now.ToString("d.M.yyyy") + ".txt";
+                nameOfFile += "_" + DateTime.Now.ToString("yyyy.M.d") + ".txt";
         } 
         void WriteTxt()
         {
