@@ -1,6 +1,10 @@
 # Logger
 A simple class in C# to write a log
 
+# Prefer:
+
+Use the DLL in "NotSimpleLogger" in my github. It's better to use
+
 # Using
 
 This logger will prints "LOG OF DAY: DD/MM/YYYY" in the first line when it creates the file.
